@@ -7,7 +7,7 @@ import java.util.Arrays;
 public class Poker implements ActionListener
 	{
 	public GUI gameGui;
-	private int money = 500;
+	public int money = 500;
 	public Hand[] players = new Hand[4];  //players[0] is the user
 	public Deck deck;
 	public Hand lastRaised;
@@ -82,7 +82,11 @@ public class Poker implements ActionListener
 			gameGui.highlight(1);
 			t.start();
 			}
-
+		private void incrCell(){
+			//do
+			cell++;
+			//while(players[cell%4].getFold()&& cell!=4);
+		}
 		public void actionPerformed(ActionEvent e)
 			{
 			if(cell == 4)								//get to player's turn
@@ -108,14 +112,22 @@ public class Poker implements ActionListener
 				else										//if player is still in, not last to raise
 					{
 					t.stop();									//show buttons and wait for input
-					gameGui.showButtons(highBet);
+					if(money <= 0 )
+						{
+						gameGui.getButtons()[3].setEnabled(true);
+						}
+					else
+						{
+							int k = highBet >= players[0].getBet()+money ? -1 : highBet;
+							gameGui.showButtons(k);
+						}
 					}
 				}
 			else										//get to ai's turn
 				{
 				if(players[cell].getFold())					//if ai folded
 					{
-					cell++;										//passes to next player
+					incrCell();										//passes to next player
 					gameGui.highlight(cell%4);
 					}
 				else if(lastRaised == players[cell])		//if ai was last to raise
@@ -134,7 +146,7 @@ public class Poker implements ActionListener
 				else										//if ai is still in,  not last to raise
 					{
 					players[cell].bet();						//ai bets, passes to next player
-					cell++;
+					incrCell();
 					gameGui.highlight(cell%4);
 					}
 				}
@@ -162,12 +174,16 @@ public class Poker implements ActionListener
 				}
 			}
 		gameGui.highlight(0);
-		if(players[0].getFold())
+		if(players[0].getFold() || money <=0)
 			{
 			gameGui.getButtons()[3].setEnabled(true);
 			setMessage("Use the continue button to finish the round.");
 			}
-		else
+		else if(highBet - players[0].getBet() <=0)
+			{
+			gameGui.showButtons(-1);
+			}
+			else
 			{
 			gameGui.showButtons(highBet);
 			}
@@ -197,10 +213,12 @@ public class Poker implements ActionListener
 			{
 			money += pool;
 			gameGui.setMoney(money);
+			winner.setScoreName();
 			setMessage("The player wins with a "+winner.getScoreName()+"!");
 			}
 		else
 			{
+			winner.setScoreName();
 			setMessage("AI #" + winner.position + " wins with a "+winner.getScoreName()+"!");
 			}
 
@@ -210,7 +228,10 @@ public class Poker implements ActionListener
 			}
 		pool=0;
 		gameGui.setPot(pool);
-		gameGui.showPlayAgain();
+		if(money <= 0)
+			setMessage("GAME OVER");
+		else
+			gameGui.showPlayAgain();
 		}
 
 	public void setMessage(String s)
@@ -243,8 +264,17 @@ public class Poker implements ActionListener
 
 		else if(e.getSource().equals(buttons[1]))
 			{
-			players[0].call();
-			money -= players[0].getBet();
+			if(highBet >= players[0].getBet()+money)
+				{
+				money -=money;
+				players[0].call(false);
+				}
+			else
+				{
+				money -= highBet - players[0].getBet();
+				players[0].call();
+				}
+
 			gameGui.setMoney(money);
 			bet();
 			}
@@ -260,8 +290,8 @@ public class Poker implements ActionListener
 				int t = 0;
 				t = Integer.parseInt(temp.getSelectedItem().toString());
 				highBet += t;
+				money -= highBet-players[0].getBet();
 				players[0].call();
-				money -= t;
 				gameGui.setMoney(money);
 				lastRaised = players[0];
 				bet();

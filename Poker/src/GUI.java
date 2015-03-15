@@ -231,16 +231,22 @@ public class GUI extends JPanel
 	public void showButtons(int value){
 		//System.out.println("Last Raised: " + poker.lastRaised.position);
 		buttonPanel.removeAll();
-		buttonPanel.add(fold);
-		call.setText("Call ("+(value - poker.players[0].getBet())+")");
-		buttonPanel.add(call);
 
+		betInput.removeAllItems();
 		betInput.addItem("Raise");
-		for(int i = 5; i <= poker.getMoney(); i+=5)
+		for(int i = 5; i <= poker.getMoney() - (poker.highBet-poker.players[0].getBet()); i+=5)
 		{
 			betInput.addItem(i);
 		}
 		buttonPanel.add(betInput);
+
+		if(value != -1)
+			call.setText("Call ("+(value - poker.players[0].getBet())+")");
+		else
+			call.setText("All in");
+
+		buttonPanel.add(call);
+		buttonPanel.add(fold);
 
 		this.updateUI();
 	}

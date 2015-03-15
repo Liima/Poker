@@ -25,6 +25,8 @@ public class Hand{
 	private Poker poker;
 	private GUI gui;
 
+	public int score;
+
 	public Hand(){}
 	public Hand(int position, Poker p){
 		cards = new Card[5];
@@ -45,16 +47,37 @@ public class Hand{
 
 	public void paint(){
 		j.removeAll();
-		if(size > 0){
-			cards[0].paint(j,vertical,(player || up));
-			for(int i=1;i<size;i++)
-				cards[i].paint(j,vertical,true);
 
+	//if position is 2 or 3 pack the JLabels first
+		if(position > 1)
+			for(int i = 0; i < 5-size; i++)
+			{
+				j.add(new JLabel());
+			}
+		if(size > 0){
+	//if posiition is 0 or 1, add facedown card 1st
+			if(position < 2){
+				cards[0].paint(j,vertical,(player || up));
+		//paint cards
+				for(int i=1;i<size;i++)
+					cards[i].paint(j,vertical,true);
+			}
+	//if position is 0 or 1, add facedown card last
+			else{
+		//paint cards
+				for(int i=size-1;i>0;i--){
+					cards[i].paint(j,vertical,true);
+				}
+				cards[0].paint(j,vertical,(player || up));
+			}
 		}
-		for(int i = 0; i < 5-size; i++)
-		{
-			j.add(new JLabel());
-		}
+	//if position is 0 or 1 pack the JLabels last
+		if(position < 2)
+			for(int i = 0; i < 5-size; i++)
+			{
+				j.add(new JLabel());
+			}
+		
 		j.updateUI();
 	}
 
@@ -119,6 +142,27 @@ public class Hand{
 		poker = p;
 	}
 
+	public void setScoreName(){
+		if(score < 100)
+			scoreName = "High Card";
+		else if(score < 200)
+			scoreName = "Pair";
+		else if(score < 300)
+			scoreName = "Two Pair";
+		else if(score < 400)
+			scoreName = "Three of a Kind";
+		else if(score < 500)
+			scoreName = "Straight";
+		else if(score < 600)
+			scoreName = "Flush";
+		else if(score < 700)
+			scoreName = "Full House";
+		else if(score < 800)
+			scoreName = "Four of a Kind";
+		else if(score < 1000)
+			scoreName = "Straight Flush";
+	}
+
 	/*--------------------------------------------------------------------------
 	Section is for computing hand ranking
 	--------------------------------------------------------------------------*/
@@ -136,10 +180,12 @@ public class Hand{
 /**/					if(i > score)
 /**/						score = i;
 /**/				//System.out.println(position+" "+score);
+					this.score = score;
 /**/				return score;
 /**/			}
 /**/			else
 /**/			{
+					this.score = -1;
 /**/				return -1;
 /**/			}
 /**/		}
@@ -162,7 +208,7 @@ public class Hand{
 /**/
 /**/		index = Arrays.asList(matches).indexOf(3);
 /**/		if(index > -1){
-				scoreName = "4 of a kind";
+				//scoreName = "4 of a kind";
 /**/			score = 700 + values[index];
 /**/		}
 /**/
@@ -174,7 +220,7 @@ public class Hand{
 /**/		int score = 0;
 /**/
 /**/		if(three() > 300 && twoPair() > 200){
-				scoreName = "Full House";
+				//scoreName = "Full House";
 /**/			score = 600 + highCard();
 			}
 /**/
@@ -194,7 +240,7 @@ public class Hand{
 /**/	}
 /**/
 /**/		if(flush){
-				scoreName = "Flush";
+				//scoreName = "Flush";
 /**/			score = 500 + highCard();
 			}
 /**/
@@ -212,7 +258,7 @@ public class Hand{
 /**/					straight = false;
 /**/
 /**/		if(straight){
-				scoreName = "Straight";
+				//scoreName = "Straight";
 /**/			score = 400 + highCard();
 			}
 /**/
@@ -232,7 +278,7 @@ public class Hand{
 					}
 				}
 			if(count==3){
-				scoreName = "3 of a kind";
+				//scoreName = "3 of a kind";
 				return 300 + highVal;
 			}
 			for(int i = 0; i<size; i++){
@@ -244,7 +290,7 @@ public class Hand{
 						return 0;
 					}
 				}
-				scoreName = "3 of a kind";
+				//scoreName = "3 of a kind";
 				return 300 + notHigh;
 			}
 		else if(pair()>0){
@@ -255,7 +301,7 @@ public class Hand{
 					count++;
 				}
 				if(count>2)
-					scoreName = "3 of a kind";
+					//scoreName = "3 of a kind";
 				return count>2 ? 300 + val : 0;
 			}
 	return 0;
@@ -270,7 +316,7 @@ public class Hand{
 					if(sorted[i].getValue() != firstPair){
 /**/					for (int j = i+1; j<size; j++){
 /**/						if (sorted[i].getValue() == sorted[j].getValue()){
-								scoreName = "Two Pair";
+								//scoreName = "Two Pair";
 /**/							return firstPair>sorted[j].getValue() ? 200 + firstPair : 200 + sorted[j].getValue();
 /**/						}
 						}
@@ -281,13 +327,11 @@ public class Hand{
 /**/	}
 /**/	//done
 /**/	private int pair(){
-/**/
-/**/
-/**/
+
 /**/		for(int i= 0; i<size; i++){
 /**/			for (int j = i+1; j<size; j++){
 /**/				if (sorted[i].getValue() == sorted[j].getValue()){
-						scoreName = "Pair";
+						//scoreName = "Pair";
 /**/					return 100 + sorted[j].getValue();
 /**/					}
 /**/				}
@@ -300,7 +344,7 @@ public class Hand{
 /**/		int value = 0;
 /**/		for(int i=0;i<size;i++)
 /**/			if(cards[i].getValue() > value){
-					scoreName = "High Card";
+					//scoreName = "High Card";
 /**/				value = cards[i].getValue();
 /**/			}
 /**/		return value;
@@ -331,7 +375,16 @@ public class Hand{
 		bet = 0;
 		gui.setBet(position,0);
 	}
-
+	public void call(boolean f)
+	{
+		if(poker.firstBet){
+			poker.lastRaised = this;
+		}
+		increaseBet(poker.money);
+		poker.firstBet = false;
+	
+		poker.setMessage("Player goes all in.");
+	}
 	public void call()
 	{
 		if(poker.firstBet){
@@ -360,7 +413,11 @@ public class Hand{
 	public void bet()
 		{
 		double d = Math.random();
-		if(d < .2)
+		boolean canfold = false;
+		for(int i=0;i<4;i++)
+			if(i!=position && !poker.players[i].getFold())
+				canfold = true;
+		if(d < .1 && canfold)
 			{
 				fold();
 			}
